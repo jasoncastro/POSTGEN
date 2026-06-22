@@ -19,11 +19,6 @@ type HistoryItem = {
   result: GenerateResult;
 };
 
-type SeoKeyword = {
-  word: string;
-  selected: boolean;
-};
-
 export default function App() {
   const [niche, setNiche] = useState(() => localStorage.getItem('socialDraft_niche') || '');
   const [platform, setPlatform] = useState(() => localStorage.getItem('socialDraft_platform') || 'Instagram');
@@ -35,9 +30,6 @@ export default function App() {
   const [generateVideoScript, setGenerateVideoScript] = useState(() => localStorage.getItem('socialDraft_videoScript') === 'true');
   const [scheduledDate, setScheduledDate] = useState(() => localStorage.getItem('socialDraft_scheduledDate') || '');
   const [scheduledTime, setScheduledTime] = useState(() => localStorage.getItem('socialDraft_scheduledTime') || '');
-  
-  const [seoKeywords, setSeoKeywords] = useState<SeoKeyword[]>([]);
-  const [isSuggestingKeywords, setIsSuggestingKeywords] = useState(false);
   
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -198,36 +190,6 @@ export default function App() {
     return { score, feedback };
   };
 
-  const suggestKeywords = async () => {
-    if (!niche) {
-      setError('Please enter a Business Niche first to get keyword suggestions.');
-      return;
-    }
-    setIsSuggestingKeywords(true);
-    setError('');
-    try {
-      const response = await fetch('/api/suggest-keywords', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ niche }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to get keyword suggestions');
-      }
-      const newKeywords = (data.result || []).map((word: string) => ({ word, selected: true }));
-      setSeoKeywords(newKeywords);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsSuggestingKeywords(false);
-    }
-  };
-
-  const toggleKeyword = (word: string) => {
-    setSeoKeywords(prev => prev.map(k => k.word === word ? { ...k, selected: !k.selected } : k));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!niche || !rawDraft) return;
@@ -236,14 +198,12 @@ export default function App() {
     setError('');
     
     try {
-      const activeKeywords = seoKeywords.filter(k => k.selected).map(k => k.word).join(', ');
-
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ niche, platform, contentType, language: contentLanguage, rawDraft, promo, brandVoice, generateVideoScript, seoKeywords: activeKeywords }),
+        body: JSON.stringify({ niche, platform, contentType, language: contentLanguage, rawDraft, promo, brandVoice, generateVideoScript }),
       });
       
       const data = await response.json();
@@ -279,14 +239,12 @@ export default function App() {
     setError('');
 
     try {
-      const activeKeywords = seoKeywords.filter(k => k.selected).map(k => k.word).join(', ');
-      
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ niche, platform: repurposeTarget, contentType, language: contentLanguage, rawDraft: result.polishedCaption, promo, brandVoice, generateVideoScript, seoKeywords: activeKeywords }),
+        body: JSON.stringify({ niche, platform: repurposeTarget, contentType, language: contentLanguage, rawDraft: result.polishedCaption, promo, brandVoice, generateVideoScript }),
       });
       
       const data = await response.json();
@@ -601,50 +559,6 @@ END:VCALENDAR`;
                 onChange={(e) => setNiche(e.target.value)}
                 required
               />
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className={`block text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-700'}`}>
-                  SEO Target Keywords
-                  <div className="relative group/tooltip">
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-slate-800 text-slate-200 text-xs rounded shadow-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-10 text-center">
-                      Auto-generate high-ranking keywords for your niche and toggle them.
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
-                    </div>
-                  </div>
-                </label>
-                <button
-                  type="button"
-                  onClick={suggestKeywords}
-                  disabled={isSuggestingKeywords || !niche}
-                  className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1.5 rounded transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-indigo-900/40 text-indigo-300 hover:bg-indigo-900/80 border border-indigo-500/20' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'}`}
-                >
-                  {isSuggestingKeywords ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  {isSuggestingKeywords ? 'Suggesting...' : 'Suggest Keywords'}
-                </button>
-              </div>
-              
-              {seoKeywords.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {seoKeywords.map((k, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => toggleKeyword(k.word)}
-                      className={`text-xs px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${k.selected ? (isDarkMode ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300' : 'bg-indigo-50 border-indigo-300 text-indigo-700') : (isDarkMode ? 'bg-slate-900 border-slate-700 text-slate-500 hover:border-slate-500' : 'bg-white border-slate-300 text-slate-500 hover:border-slate-400')}`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${k.selected ? 'bg-indigo-500' : 'bg-transparent'}`}></span>
-                      {k.word}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className={`text-xs p-3 border border-dashed rounded-lg text-left ${isDarkMode ? 'border-slate-800/80 text-slate-600 bg-slate-900/50' : 'border-slate-300 text-slate-400 bg-slate-50/50'}`}>
-                  No keywords added yet. Enter a business niche and click 'Suggest Keywords' to let AI find high-ranking terms.
-                </div>
-              )}
             </div>
 
             <div>
