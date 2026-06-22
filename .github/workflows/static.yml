@@ -43,6 +43,11 @@ jobs:
 
       - name: Build project
         run: npm run build
+
+      - name: Run TypeScript Script
+        run: |
+          npm install -g tsx
+          npx tsx your-script.ts
         
       - name: Setup Pages
         uses: actions/configure-pages@v5
