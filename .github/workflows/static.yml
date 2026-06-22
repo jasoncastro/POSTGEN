@@ -23,6 +23,24 @@ concurrency:
 
 jobs:
   # Single deploy job since we're just deploying
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Project Dependencies
+        run: npm ci
+
+      - name: Execute TypeScript File
+        run: npx tsx path/to/your-file.ts
+        
   deploy:
     environment:
       name: github-pages
