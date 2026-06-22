@@ -1,0 +1,6 @@
+{
+  "name": "Skinkraft TV POSTGEN",
+  "description": "An elite social media manager tool that transforms raw drafts into SEO-optimized, highly engaging copy tailored to your platform and content type.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
