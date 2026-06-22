@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Sparkles, Loader2, Copy, CheckCircle2, Moon, Sun, Calendar, HelpCircle, BarChart2, Eye, X, FileDown, RefreshCw, Award, Zap } from 'lucide-react';
+import { Sparkles, Loader2, Copy, CheckCircle2, Moon, Sun, Calendar, HelpCircle, BarChart2, Eye, X, FileDown, RefreshCw, Award, Zap, FileJson } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 
 type GenerateResult = {
@@ -361,6 +361,18 @@ export default function App() {
     navigator.clipboard.writeText(`${result.polishedCaption}\n\n${result.hashtags}`);
     setCopiedCaption(true);
     setTimeout(() => setCopiedCaption(false), 2000);
+  };
+
+  const exportToJSON = () => {
+    if (!result) return;
+    const jsonString = JSON.stringify(result, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `postgen-export-${new Date().getTime()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const exportToPDF = () => {
@@ -838,6 +850,13 @@ END:VCALENDAR`;
                 )}
                 {result && (
                   <>
+                    <button 
+                      onClick={exportToJSON}
+                      className="text-xs text-emerald-400 font-bold uppercase tracking-widest hover:text-emerald-300 flex items-center gap-1.5 transition-colors"
+                    >
+                      <FileJson className="w-4 h-4" />
+                      Export JSON
+                    </button>
                     <button 
                       onClick={exportToPDF}
                       className="text-xs text-rose-400 font-bold uppercase tracking-widest hover:text-rose-300 flex items-center gap-1.5 transition-colors"

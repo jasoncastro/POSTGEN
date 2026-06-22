@@ -49,10 +49,12 @@ async function startServer() {
     } catch (error) {
       console.error(error);
       let errorMessage = "An error occurred while generating the copy.";
+      let statusCode = 500;
       if (error?.status === 429 || (error as any)?.message?.includes("429") || (error as any)?.message?.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "API Rate limit exceeded (Free Tier). Please wait a bit before trying again.";
+        statusCode = 429;
       }
-      res.status((error as any)?.status === 429 ? 429 : 500).json({ error: errorMessage });
+      res.status(statusCode).json({ error: errorMessage });
     }
   });
 
@@ -83,10 +85,12 @@ You MUST return a JSON object with the exact following schema:
     } catch (error) {
       console.error(error);
       let errorMessage = "An error occurred while generating hashtags.";
+      let statusCode = 500;
       if (error?.status === 429 || (error as any)?.message?.includes("429") || (error as any)?.message?.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "API Rate limit exceeded. Please wait a bit before trying again.";
+        statusCode = 429;
       }
-      res.status((error as any)?.status === 429 ? 429 : 500).json({ error: errorMessage });
+      res.status(statusCode).json({ error: errorMessage });
     }
   });
 
@@ -109,10 +113,12 @@ You MUST return a JSON object with the exact following schema:
     } catch (error) {
       console.error(error);
       let errorMessage = "An error occurred while suggesting keywords.";
+      let statusCode = 500;
       if (error?.status === 429 || (error as any)?.message?.includes("429") || (error as any)?.message?.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "API Rate limit exceeded. Please wait a bit before trying again.";
+        statusCode = 429;
       }
-      res.status((error as any)?.status === 429 ? 429 : 500).json({ error: errorMessage });
+      res.status(statusCode).json({ error: errorMessage });
     }
   });
 
