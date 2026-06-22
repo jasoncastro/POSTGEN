@@ -78,6 +78,9 @@ async function startServer() {
       } else if (error?.status === 429 || (error as any)?.message?.includes("429") || (error as any)?.message?.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "API Rate limit exceeded (Free Tier). Please wait a bit before trying again.";
         statusCode = 429;
+      } else if (error?.status === 503 || (error as any)?.message?.includes("503") || (error as any)?.message?.includes("UNAVAILABLE")) {
+        errorMessage = "The AI model is currently experiencing high demand. Please try again in a moment.";
+        statusCode = 503;
       }
       res.status(statusCode).json({ error: errorMessage });
     }
@@ -117,6 +120,9 @@ async function startServer() {
       if (error?.status === 429 || (error as any)?.message?.includes("429") || (error as any)?.message?.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "API Rate limit exceeded. Please wait a bit before trying again.";
         statusCode = 429;
+      } else if (error?.status === 503 || (error as any)?.message?.includes("503") || (error as any)?.message?.includes("UNAVAILABLE")) {
+        errorMessage = "The AI model is currently experiencing high demand. Please try again in a moment.";
+        statusCode = 503;
       }
       res.status(statusCode).json({ error: errorMessage });
     }
