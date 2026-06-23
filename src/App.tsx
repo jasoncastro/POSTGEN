@@ -640,7 +640,6 @@ END:VCALENDAR`;
                     <div className="relative flex items-center justify-center">
                       <input 
                         type="checkbox" 
-                        target="_blank"
                         className="peer appearance-none w-4 h-4 rounded-sm border border-slate-400 checked:bg-indigo-600 checked:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 focus:ring-offset-slate-900 transition-all cursor-pointer"
                         checked={generateVideoScript}
                         onChange={(e) => setGenerateVideoScript(e.target.checked)}
