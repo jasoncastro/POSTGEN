@@ -6,7 +6,7 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     //base: process.env.VITE_BASE || '/',
-    base: process.env.VITE_BASE || '/',
+    base: process.env.VITE_BASE || '/POSTGEN/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
