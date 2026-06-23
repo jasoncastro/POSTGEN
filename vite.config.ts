@@ -3,11 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 
-//export default defineConfig(() => {
-export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` (e.g., .env, .env.production)
-  const env = loadEnv(mode, process.cwd(), '')
-  
+export default defineConfig(() => { 
   return {
     base: process.env.VITE_BASE || '/',
     plugins: [react(), tailwindcss()],
