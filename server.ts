@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -6,19 +7,29 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
+let aiClient: GoogleGenAI | null = null;
+function getAiClient(): GoogleGenAI {
+  if (!aiClient) {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY environment variable is not set.");
     }
+    aiClient = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
   }
-});
+  return aiClient;
+}
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT || 3000;
 
+  app.use(cors());
   app.use(express.json());
 
   app.post("/api/generate", async (req, res) => {
@@ -56,7 +67,7 @@ async function startServer() {
         responseSchema.properties.videoScript = { type: Type.STRING };
       }
 
-      const response = await ai.models.generateContent({
+      const response = await getAiClient().models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -72,7 +83,13 @@ async function startServer() {
       console.error(error);
       let errorMessage = "An error occurred while generating the copy.";
       let statusCode = 500;
-      if (error?.status === 400 || (error as any)?.message?.includes("400") || (error as any)?.message?.includes("invalid argument") || (error as any)?.message?.includes("INVALID_ARGUMENT")) {
+      if (error instanceof Error && error.message.includes("GEMINI_API_KEY environment variable is not set")) {
+        errorMessage = "Configuration Error: GEMINI_API_KEY is not set. If you deployed this to Google Cloud, please add your GEMINI_API_KEY as an environment variable in Cloud Run.";
+        statusCode = 500;
+      } else if (error?.status === 401 || (error as any)?.message?.includes("401") || (error as any)?.message?.includes("UNAUTHENTICATED")) {
+        errorMessage = "Authentication Error: Please check your GEMINI_API_KEY environment variable. If deploying to Google Cloud, ensure the key is correctly set in your environment secrets.";
+        statusCode = 401;
+      } else if (error?.status === 400 || (error as any)?.message?.includes("400") || (error as any)?.message?.includes("invalid argument") || (error as any)?.message?.includes("INVALID_ARGUMENT")) {
         errorMessage = `Bad Request: ${(error as any)?.message || JSON.stringify(error)}`;
         statusCode = 400;
       } else if (error?.status === 429 || (error as any)?.message?.includes("429") || (error as any)?.message?.includes("RESOURCE_EXHAUSTED")) {
@@ -101,7 +118,7 @@ async function startServer() {
         }
       } as any;
 
-      const response = await ai.models.generateContent({
+      const response = await getAiClient().models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -117,7 +134,13 @@ async function startServer() {
       console.error(error);
       let errorMessage = "An error occurred while generating hashtags.";
       let statusCode = 500;
-      if (error?.status === 429 || (error as any)?.message?.includes("429") || (error as any)?.message?.includes("RESOURCE_EXHAUSTED")) {
+      if (error instanceof Error && error.message.includes("GEMINI_API_KEY environment variable is not set")) {
+        errorMessage = "Configuration Error: GEMINI_API_KEY is not set. If you deployed this to Google Cloud, please add your GEMINI_API_KEY as an environment variable in Cloud Run.";
+        statusCode = 500;
+      } else if (error?.status === 401 || (error as any)?.message?.includes("401") || (error as any)?.message?.includes("UNAUTHENTICATED")) {
+        errorMessage = "Authentication Error: Please check your GEMINI_API_KEY environment variable. If deploying to Google Cloud, ensure the key is correctly set in your environment secrets.";
+        statusCode = 401;
+      } else if (error?.status === 429 || (error as any)?.message?.includes("429") || (error as any)?.message?.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "API Rate limit exceeded. Please wait a bit before trying again.";
         statusCode = 429;
       } else if (error?.status === 503 || (error as any)?.message?.includes("503") || (error as any)?.message?.includes("UNAVAILABLE")) {

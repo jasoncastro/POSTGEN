@@ -198,13 +198,19 @@ export default function App() {
     setError('');
     
     try {
-      const response = await fetch('/api/generate', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ niche, platform, contentType, language: contentLanguage, rawDraft, promo, brandVoice, generateVideoScript }),
       });
+      
+      const contentTypeHeader = response.headers.get('content-type');
+      if (!contentTypeHeader || !contentTypeHeader.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`API Error (${response.status}): Expected JSON but got HTML. Ensure the Express backend is running. ${text.slice(0, 50)}...`);
+      }
       
       const data = await response.json();
       
@@ -239,7 +245,7 @@ export default function App() {
     setError('');
 
     try {
-      const response = await fetch('/api/generate', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -247,6 +253,12 @@ export default function App() {
         body: JSON.stringify({ niche, platform: repurposeTarget, contentType, language: contentLanguage, rawDraft: result.polishedCaption, promo, brandVoice, generateVideoScript }),
       });
       
+      const contentTypeHeader = response.headers.get('content-type');
+      if (!contentTypeHeader || !contentTypeHeader.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`API Error (${response.status}): Expected JSON but got HTML. Ensure the Express backend is running. ${text.slice(0, 50)}...`);
+      }
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || 'Failed to repurpose copy');
@@ -278,7 +290,7 @@ export default function App() {
     setError('');
     
     try {
-      const resp = await fetch('/api/generate-hashtags', {
+      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/generate-hashtags`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -286,6 +298,12 @@ export default function App() {
         body: JSON.stringify({ niche, platform, polishedCaption: result.polishedCaption }),
       });
       
+      const contentTypeHeader = resp.headers.get('content-type');
+      if (!contentTypeHeader || !contentTypeHeader.includes('application/json')) {
+        const text = await resp.text();
+        throw new Error(`API Error (${resp.status}): Expected JSON but got HTML. Ensure the Express backend is running. ${text.slice(0, 50)}...`);
+      }
+
       const data = await resp.json();
       
       if (!resp.ok) {
